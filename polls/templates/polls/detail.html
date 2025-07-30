@@ -1,0 +1,11 @@
+{% extends "polls/base.html" %}
+{% block title %}{{ question.question_text }}{% endblock %}
+{% block content %}
+  <h2>{{ question.question_text }}</h2>
+  <ul>
+  {% for choice in question.choice_set.all %}
+    <li>{{ choice.choice_text }}</li>
+  {% endfor %}
+  </ul>
+  <a href="{% url 'index' %}">質問一覧へ戻る</a>
+{% endblock %}

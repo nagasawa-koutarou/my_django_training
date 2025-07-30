@@ -3,6 +3,14 @@ from django.shortcuts import render
 # Create your views here.
 # polls/views.py
 from django.http import HttpResponse
+from .models import Question
+from django.shortcuts import get_object_or_404
 
 def index(request):
-    return HttpResponse("Hello, world! You're at the polls index.")
+    latest_question_list = Question.objects.all()
+    context = {'latest_question_list': latest_question_list}
+    return render(request, 'polls/index.html', context)
+
+def detail(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    return render(request, 'polls/detail.html', {'question': question})

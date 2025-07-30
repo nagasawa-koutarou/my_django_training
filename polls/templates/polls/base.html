@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <title>{% block title %}アンケート{% endblock %}</title>
+  </head>
+  <body>
+    <header>
+      <h1><a href="{% url 'index' %}">アンケートサイト</a></h1>
+    </header>
+    <hr>
+    {% block content %}
+    {% endblock %}
+    <hr>
+    <footer>
+      <small>&copy; 2025 Polls Tutorial</small>
+    </footer>
+  </body>
+</html>

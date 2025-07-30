@@ -1,11 +1,48 @@
 {% extends "polls/base.html" %}
+
 {% block title %}{{ question.question_text }}{% endblock %}
+
 {% block content %}
-  <h2>{{ question.question_text }}</h2>
+<h2>{{ question.question_text }}</h2>
+
+{% if error_message %}
+  <p style="color: red;">{{ error_message }}</p>
+{% endif %}
+
+<form action="{% url 'vote' question.id %}" method="post">
+  {% csrf_token %}
   <ul>
-  {% for choice in question.choice_set.all %}
-    <li>{{ choice.choice_text }}</li>
-  {% endfor %}
+    {% for choice in question.choice_set.all %}
+      <li>
+        <label>
+          <input type="radio" name="choice" value="{{ choice.id }}">
+          {{ choice.choice_text }}
+        </label>
+      </li>
+    {% endfor %}
   </ul>
-  <a href="{% url 'index' %}">質問一覧へ戻る</a>
+  <button type="submit">投票する</button>
+</form>
+
+<script>
+document.querySelectorAll('input[type="radio"][name="choice"]').forEach(function(radio) {
+    // 前回選択フラグ
+    radio.wasChecked = false;
+    radio.addEventListener('click', function(e) {
+        // すでに選択済みだった場合は解除
+        if (this.wasChecked) {
+            this.checked = false;
+            this.wasChecked = false;
+        } else {
+            // クリック時に一旦全て解除
+            document.querySelectorAll('input[type="radio"][name="choice"]').forEach(function(r) {
+                r.wasChecked = false;
+            });
+            this.wasChecked = true;
+        }
+    });
+});
+</script>
+
+<a href="{% url 'index' %}">質問一覧へ戻る</a>
 {% endblock %}

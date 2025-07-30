@@ -1,0 +1,13 @@
+{% extends "polls/base.html" %}
+
+{% block title %}{{ question.question_text }} の結果{% endblock %}
+{% block content %}
+  <h2>{{ question.question_text }}</h2>
+  <ul>
+    {% for choice in question.choice_set.all %}
+      <li>{{ choice.choice_text }} — {{ choice.votes }}票</li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'detail' question.id %}">もう一度投票する</a>
+  <a href="{% url 'index' %}">質問一覧に戻る</a>
+{% endblock %}

@@ -1,11 +1,16 @@
-# polls/urls.py
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    # 追加：/polls/3/ のようにIDでアクセスできるURL
-    path('<int:question_id>/', views.detail, name='detail'),
+    # トップページ（質問リスト）：IndexViewのas_view()を指定
+    path('', views.IndexView.as_view(), name='index'),
+
+    # 質問の詳細ページ：pk（プライマリキー）でアクセス
+    path('<int:pk>/', views.DetailView.as_view(), name='detail'),
+
+    # 結果ページもpk指定
+    path('<int:pk>/results/', views.ResultsView.as_view(), name='results'),
+
+    # 投票処理（POSTのみ）は従来の関数ベースビュー
     path('<int:question_id>/vote/', views.vote, name='vote'),
-    path('<int:question_id>/results/', views.results, name='results'),
 ]

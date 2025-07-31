@@ -1,7 +1,7 @@
 import datetime
 from django.utils import timezone
 from django.test import TestCase
-from .models import Question
+from .models import Question, Choice
 from django.urls import reverse
 
 class QuestionModelTests(TestCase):
@@ -89,3 +89,31 @@ class QuestionDetailViewTests(TestCase):
         url = reverse('detail', args=(past_question.id,))
         response = self.client.get(url)
         self.assertContains(response, past_question.question_text)
+
+class VoteViewTests(TestCase):
+    def setUp(self):
+        # テスト用のQuestionとChoiceを作成
+        self.question = Question.objects.create(
+            question_text="好きな色は？",
+            pub_date=timezone.now()
+        )
+        self.choice1 = Choice.objects.create(question=self.question, choice_text="赤", votes=0)
+        self.choice2 = Choice.objects.create(question=self.question, choice_text="青", votes=0)
+
+    def test_vote_count_up(self):
+        """
+        選択肢を選んで投票したらカウントアップされるか
+        """
+        vote_url = reverse('vote', args=(self.question.id,))
+        response = self.client.post(vote_url, {'choice': self.choice1.id})
+        self.choice1.refresh_from_db()
+        self.assertEqual(self.choice1.votes, 1)
+        self.assertRedirects(response, reverse('results', args=(self.question.id,)))
+
+    def test_vote_no_choice_selected(self):
+        """
+        選択肢を選ばずに送信した場合、エラーメッセージが出るか
+        """
+        vote_url = reverse('vote', args=(self.question.id,))
+        response = self.client.post(vote_url, {})  # choice未選択
+        self.assertContains(response, "選択肢を選んでください。")

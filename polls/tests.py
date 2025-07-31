@@ -117,3 +117,61 @@ class VoteViewTests(TestCase):
         vote_url = reverse('vote', args=(self.question.id,))
         response = self.client.post(vote_url, {})  # choice未選択
         self.assertContains(response, "選択肢を選んでください。")
+
+class QuestionIndexViewTests(TestCase):
+    def test_no_questions(self):
+        """質問が存在しない場合、メッセージが表示されるか"""
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, "質問がありません。")
+        self.assertQuerySetEqual(response.context['latest_question_list'], [])
+
+    def test_past_question(self):
+        """pub_dateが過去の場合、質問リストに表示される"""
+        question = Question.objects.create(
+            question_text="過去の質問", pub_date=timezone.now() - datetime.timedelta(days=30))
+        response = self.client.get(reverse('index'))
+        self.assertQuerySetEqual(
+            response.context['latest_question_list'],
+            [question],
+        )
+
+    def test_future_question(self):
+        """pub_dateが未来の場合、質問リストに表示されない"""
+        Question.objects.create(
+            question_text="未来の質問", pub_date=timezone.now() + datetime.timedelta(days=30))
+        response = self.client.get(reverse('index'))
+        self.assertContains(response, "質問がありません。")
+        self.assertQuerySetEqual(response.context['latest_question_list'], [])
+
+    def test_future_and_past_question(self):
+        """過去と未来の質問が混ざっているとき、過去の質問だけ表示される"""
+        past_question = Question.objects.create(
+            question_text="過去の質問", pub_date=timezone.now() - datetime.timedelta(days=30))
+        future_question = Question.objects.create(
+            question_text="未来の質問", pub_date=timezone.now() + datetime.timedelta(days=30))
+        response = self.client.get(reverse('index'))
+        self.assertQuerySetEqual(
+            response.context['latest_question_list'],
+            [past_question],
+        )
+
+class QuestionDetailViewTests(TestCase):
+    def test_future_question(self):
+        """未来の質問の詳細ページは404"""
+        future_question = Question.objects.create(
+            question_text='未来の質問です',
+            pub_date=timezone.now() + datetime.timedelta(days=5)
+        )
+        url = reverse('detail', args=(future_question.id,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_past_question(self):
+        """過去の質問の詳細ページは表示される"""
+        past_question = Question.objects.create(
+            question_text='過去の質問です',
+            pub_date=timezone.now() - datetime.timedelta(days=5)
+        )
+        url = reverse('detail', args=(past_question.id,))
+        response = self.client.get(url)
+        self.assertContains(response, past_question.question_text)

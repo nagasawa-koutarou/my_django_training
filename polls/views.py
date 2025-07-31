@@ -3,6 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 # polls/views.py
 from django.http import HttpResponse
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -15,6 +16,9 @@ def index(request):
 
 def detail(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
+    # 未来の質問は404エラー
+    if question.pub_date > timezone.now():
+        raise Http404("この質問はまだ公開されていません。")
     return render(request, 'polls/detail.html', {'question': question})
 
 def results(request, question_id):

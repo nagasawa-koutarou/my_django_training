@@ -64,3 +64,28 @@ class QuestionIndexViewTests(TestCase):
         response = self.client.get(reverse('index'))
         self.assertContains(response, "質問がありません。")
         self.assertQuerySetEqual(response.context['latest_question_list'], [])
+
+class QuestionDetailViewTests(TestCase):
+    def test_future_question(self):
+        """
+        未来の質問の詳細ページにはアクセスできない（404を返す）
+        """
+        future_question = Question.objects.create(
+            question_text='未来の質問です。',
+            pub_date=timezone.now() + datetime.timedelta(days=5)
+        )
+        url = reverse('detail', args=(future_question.id,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_past_question(self):
+        """
+        過去の質問の詳細ページは表示される
+        """
+        past_question = Question.objects.create(
+            question_text='過去の質問です。',
+            pub_date=timezone.now() - datetime.timedelta(days=1)
+        )
+        url = reverse('detail', args=(past_question.id,))
+        response = self.client.get(url)
+        self.assertContains(response, past_question.question_text)
